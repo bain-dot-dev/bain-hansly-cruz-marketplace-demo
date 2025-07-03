@@ -131,23 +131,23 @@ export default function CreateItemPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-2xl font-bold text-gray-900 mb-8">
+    <div className="max-w-6xl mx-auto p-4 sm:p-6">
+      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 sm:mb-8">
         Create Item Listing
       </h1>
 
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Form Section */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-1 space-y-4 sm:space-y-6">
             {/* Image Upload */}
             <div>
               <Label htmlFor="image">Add photos</Label>
               <div className="mt-2">
                 {!imagePreview ? (
                   <label htmlFor="image" className="cursor-pointer">
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
-                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 sm:p-8 text-center hover:border-gray-400 transition-colors">
+                      <Upload className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400 mx-auto mb-2" />
                       <p className="text-sm text-gray-600">Add photos</p>
                     </div>
                     <input
@@ -165,7 +165,7 @@ export default function CreateItemPage() {
                       alt="Preview"
                       width={300}
                       height={200}
-                      className="rounded-lg object-cover w-full h-48"
+                      className="rounded-lg object-cover w-full h-40 sm:h-48"
                     />
                     <Button
                       type="button"
@@ -273,8 +273,8 @@ export default function CreateItemPage() {
 
           {/* Preview Section */}
           <div className="lg:col-span-2">
-            <h2 className="text-xl font-semibold mb-4">Preview</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <h2 className="text-lg sm:text-xl font-semibold mb-4">Preview</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               {/* Large Preview */}
               <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
                 {imagePreview ? (
@@ -287,18 +287,18 @@ export default function CreateItemPage() {
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
-                    <div className="text-blue-400 text-6xl">📷</div>
+                    <div className="text-blue-400 text-4xl sm:text-6xl">📷</div>
                   </div>
                 )}
               </div>
 
               {/* Details Preview */}
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div>
-                  <h3 className="text-xl font-bold">
+                  <h3 className="text-lg sm:text-xl font-bold">
                     {formData.title || "Title"}
                   </h3>
-                  <p className="text-xl font-semibold">
+                  <p className="text-lg sm:text-xl font-semibold">
                     {formData.price ? `$${formData.price}` : "Price"}
                   </p>
                 </div>

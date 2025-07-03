@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { ItemGrid } from "@/components/marketplace/item-grid";
 
@@ -15,14 +17,24 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     .join(" ");
 
   return (
-    <div className="flex">
+    <div className="flex min-h-screen">
       <Sidebar />
-      <div className="flex-1 p-6">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">
-            {categoryName}
-          </h1>
-          <ItemGrid category={categoryName} />
+      <div className="flex-1 min-w-0 overflow-hidden">
+        <div className="p-4 sm:p-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center mb-4 sm:mb-6">
+              <Link
+                href="/"
+                className="lg:hidden mr-3 p-1 hover:bg-gray-100 rounded"
+              >
+                <ArrowLeft className="w-5 h-5 text-gray-600" />
+              </Link>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+                {categoryName}
+              </h1>
+            </div>
+            <ItemGrid category={categoryName} />
+          </div>
         </div>
       </div>
     </div>
