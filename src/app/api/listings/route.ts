@@ -66,6 +66,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Generate a test Stripe account ID for the seller
+    const testStripeAccountId = `acct_test_${Math.random()
+      .toString(36)
+      .substr(2, 10)}`;
+
     const { data, error } = await supabase
       .from("listings")
       .insert([
@@ -75,8 +80,10 @@ export async function POST(request: NextRequest) {
           price,
           category,
           seller_email: email, // Map email to seller_email
+          seller_stripe_account_id: testStripeAccountId, // Add test Stripe account
           image_url,
           location: "Palo Alto, CA", // Default location
+          status: "available", // Set initial status
         },
       ])
       .select()
@@ -93,6 +100,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log("Created listing with Stripe account:", testStripeAccountId);
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
     console.error("API error:", error);

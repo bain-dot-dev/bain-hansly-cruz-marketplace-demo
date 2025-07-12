@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import { CheckoutButton } from "@/components/stripe/checkout-button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
@@ -17,8 +18,10 @@ interface Listing {
   price: number;
   category: string;
   seller_email: string;
+  seller_stripe_account_id?: string;
   image_url?: string;
   location: string;
+  status?: string;
   created_at: string;
 }
 
@@ -158,9 +161,31 @@ export default function ItemDetailPage() {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
               {listing.title}
             </h1>
-            <p className="text-2xl sm:text-3xl font-bold text-gray-900">
+            <p className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
               ${listing.price.toLocaleString()}
             </p>
+
+            {/* Buy Now Button */}
+            {listing.status !== "sold" && listing.seller_stripe_account_id && (
+              <div className="mb-6">
+                <CheckoutButton
+                  listingId={listing.id}
+                  title={listing.title}
+                  price={listing.price}
+                  description={listing.description}
+                  sellerStripeAccountId={listing.seller_stripe_account_id}
+                  className="w-full sm:w-auto px-8 py-3 text-lg font-semibold"
+                />
+              </div>
+            )}
+
+            {listing.status === "sold" && (
+              <div className="mb-6">
+                <div className="inline-block bg-red-100 text-red-800 px-4 py-2 rounded-lg font-medium">
+                  🚫 This item has been sold
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="text-sm text-gray-600">
@@ -203,6 +228,38 @@ export default function ItemDetailPage() {
               >
                 {sendingMessage ? "Sending..." : "Send"}
               </Button>
+
+              {/* Checkout Button for Purchase */}
+              {listing.status !== "sold" &&
+                listing.seller_stripe_account_id && (
+                  <div className="mt-3">
+                    <CheckoutButton
+                      listingId={listing.id}
+                      title={listing.title}
+                      price={listing.price}
+                      description={listing.description}
+                      sellerStripeAccountId={listing.seller_stripe_account_id}
+                      className="w-full bg-[#8e3fe7] hover:bg-[#7e18f2] text-white font-semibold py-3"
+                    />
+                  </div>
+                )}
+
+              {listing.status !== "sold" &&
+                !listing.seller_stripe_account_id && (
+                  <div className="mt-3">
+                    <div className="w-full bg-gray-100 text-gray-600 px-4 py-3 rounded-lg font-medium text-center">
+                      💳 Payment processing not available for this item
+                    </div>
+                  </div>
+                )}
+
+              {listing.status === "sold" && (
+                <div className="mt-3">
+                  <div className="w-full bg-red-100 text-red-800 px-4 py-3 rounded-lg font-medium text-center">
+                    🚫 This item has been sold
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

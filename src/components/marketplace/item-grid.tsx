@@ -6,14 +6,18 @@ import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CheckoutButton } from "@/components/stripe/checkout-button";
 
 interface Listing {
   id: string;
   title: string;
+  description?: string;
   price: number;
   location: string;
   image_url?: string;
   category: string;
+  status?: string;
+  seller_stripe_account_id?: string;
   created_at: string;
 }
 
@@ -31,7 +35,9 @@ export function ItemGrid({ category }: { category?: string }) {
         const response = await fetch(url);
         if (response.ok) {
           const data = await response.json();
-          setListings(data);
+          // Handle both array and object responses
+          const listingsData = Array.isArray(data) ? data : data.listings || [];
+          setListings(listingsData);
         }
       } catch (error) {
         console.error("Error fetching listings:", error);
@@ -73,8 +79,11 @@ export function ItemGrid({ category }: { category?: string }) {
     <div className="w-full overflow-hidden">
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
         {listings.map((listing) => (
-          <Link key={listing.id} href={`/item/${listing.id}`} className="min-w-0">
-            <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer min-w-0">
+          <Card
+            key={listing.id}
+            className="overflow-hidden hover:shadow-lg transition-shadow min-w-0"
+          >
+            <Link href={`/item/${listing.id}`} className="min-w-0">
               <div className="aspect-square relative bg-gray-100">
                 {listing.image_url ? (
                   <Image
@@ -89,20 +98,40 @@ export function ItemGrid({ category }: { category?: string }) {
                   </div>
                 )}
               </div>
-              <CardContent className="p-2 sm:p-3 min-w-0">
+            </Link>
+            <CardContent className="p-2 sm:p-3 min-w-0 flex flex-col justify-between">
+              <div>
                 <div className="font-semibold text-sm sm:text-lg text-gray-900 mb-1 truncate">
                   ${listing.price.toLocaleString()}
                 </div>
                 <div className="text-xs sm:text-sm text-gray-600 mb-2 line-clamp-2 break-words">
                   {listing.title}
                 </div>
-                <div className="text-xs text-gray-500 truncate">{listing.location}</div>
-                <Badge variant="secondary" className="mt-1 sm:mt-2 text-xs truncate">
+                <div className="text-xs text-gray-500 truncate">
+                  {listing.location}
+                </div>
+              </div>
+              <div className="flex flex-col gap-2 mt-2">
+                <Badge
+                  variant="secondary"
+                  className="text-xs truncate self-start"
+                >
                   {listing.category}
                 </Badge>
-              </CardContent>
-            </Card>
-          </Link>
+                {listing.status !== "sold" &&
+                  listing.seller_stripe_account_id && (
+                    <CheckoutButton
+                      listingId={listing.id}
+                      title={listing.title}
+                      price={listing.price}
+                      description={listing.description}
+                      sellerStripeAccountId={listing.seller_stripe_account_id}
+                      className="w-full text-xs bg-[#8e3fe7] hover:bg-[#7e18f2] text-white font-semibold py-3"
+                    />
+                  )}
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
     </div>
