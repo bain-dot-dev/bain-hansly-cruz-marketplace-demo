@@ -173,6 +173,7 @@ export default function ItemDetailPage() {
                   title={listing.title}
                   price={listing.price}
                   description={listing.description}
+                  imageUrl={listing.image_url}
                   sellerStripeAccountId={listing.seller_stripe_account_id}
                   className="w-full sm:w-auto px-8 py-3 text-lg font-semibold"
                 />
@@ -238,6 +239,7 @@ export default function ItemDetailPage() {
                       title={listing.title}
                       price={listing.price}
                       description={listing.description}
+                      imageUrl={listing.image_url}
                       sellerStripeAccountId={listing.seller_stripe_account_id}
                       className="w-full bg-[#8e3fe7] hover:bg-[#7e18f2] text-white font-semibold py-3"
                     />

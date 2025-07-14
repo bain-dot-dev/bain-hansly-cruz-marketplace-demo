@@ -10,6 +10,7 @@ interface CheckoutButtonProps {
   title: string;
   price: number;
   description?: string;
+  imageUrl?: string;
   sellerStripeAccountId: string;
   disabled?: boolean;
   className?: string;
@@ -20,6 +21,7 @@ export function CheckoutButton({
   title,
   price,
   description,
+  imageUrl,
   sellerStripeAccountId,
   disabled,
   className,
@@ -33,8 +35,8 @@ export function CheckoutButton({
     }
 
     // Show info for test accounts
-    if (sellerStripeAccountId.startsWith('acct_test_')) {
-      toast.info('Demo mode: This will create a test payment session');
+    if (sellerStripeAccountId.startsWith("acct_test_")) {
+      toast.info("Demo mode: This will create a test payment session");
     }
 
     setIsLoading(true);
@@ -53,6 +55,7 @@ export function CheckoutButton({
             name: title,
             description: description || `Purchase ${title}`,
             postId: listingId,
+            imageUrl: imageUrl,
           },
         }),
       });

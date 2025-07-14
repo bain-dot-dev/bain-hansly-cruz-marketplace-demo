@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("Creating checkout session for account:", accountId);
+    console.log("Product info:", productInfo);
 
     // Check if this is a test account (starts with acct_test_)
     const isTestAccount = accountId.startsWith("acct_test_");
@@ -41,6 +42,9 @@ export async function POST(request: NextRequest) {
                   name: productInfo?.name || "Marketplace Item",
                   description:
                     productInfo?.description || "Purchase from marketplace",
+                  images: productInfo?.imageUrl
+                    ? [productInfo.imageUrl]
+                    : undefined,
                 },
                 unit_amount: amount,
               },
@@ -77,6 +81,9 @@ export async function POST(request: NextRequest) {
                     name: productInfo?.name || "Marketplace Item",
                     description:
                       productInfo?.description || "Purchase from marketplace",
+                    images: productInfo?.imageUrl
+                      ? [productInfo.imageUrl]
+                      : undefined,
                   },
                   unit_amount: amount,
                 },

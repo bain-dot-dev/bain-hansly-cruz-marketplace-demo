@@ -23,6 +23,7 @@ export default function TestCheckout() {
               title="iPhone 14 Pro"
               price={899}
               description="iPhone 14 Pro in excellent condition"
+              imageUrl="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=500&h=500&fit=crop"
               sellerStripeAccountId="acct_test_sample1"
               className="w-full"
             />
@@ -43,6 +44,7 @@ export default function TestCheckout() {
               title="MacBook Pro"
               price={1299}
               description="MacBook Pro for work and creativity"
+              imageUrl="https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=500&h=500&fit=crop"
               sellerStripeAccountId="acct_test_sample2"
               className="w-full"
             />

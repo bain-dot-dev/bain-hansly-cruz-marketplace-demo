@@ -25,10 +25,10 @@ import {
 interface TransactionSummary {
   period: string;
   transaction_count: number;
-  total_volume: number;
-  platform_fees: number;
-  successful_rate: number;
-  average_transaction: number;
+  total_volume: number | null;
+  platform_fees: number | null;
+  successful_rate: number | null;
+  average_transaction: number | null;
   total_transactions: number;
   successful_transactions: number;
   pending_transactions: number;
@@ -39,18 +39,18 @@ interface SellerPerformance {
   total_listings: number;
   sold_listings: number;
   total_sales: number;
-  stripe_volume: number;
-  platform_fees_paid: number;
-  conversion_rate: number;
+  stripe_volume: number | null;
+  platform_fees_paid: number | null;
+  conversion_rate: number | null;
 }
 
 interface CategoryPerformance {
   category: string;
   total_listings: number;
   sold_count: number;
-  avg_price: number;
-  total_revenue: number;
-  category_conversion_rate: number;
+  avg_price: number | null;
+  total_revenue: number | null;
+  category_conversion_rate: number | null;
 }
 
 export default function AnalyticsPage() {
@@ -200,9 +200,11 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                ${summary.total_volume.toFixed(2)}
+                ${Number(summary.total_volume || 0).toFixed(2)}
               </div>
-              <p className="text-xs text-muted-foreground">{summary.period}</p>
+              <p className="text-xs text-muted-foreground">
+                {summary.period || "All time"}
+              </p>
             </CardContent>
           </Card>
 
@@ -215,10 +217,10 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {summary.transaction_count}
+                {summary.transaction_count || 0}
               </div>
               <p className="text-xs text-muted-foreground">
-                {summary.successful_rate.toFixed(1)}% success rate
+                {Number(summary.successful_rate || 0).toFixed(1)}% success rate
               </p>
             </CardContent>
           </Card>
@@ -232,7 +234,7 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                ${summary.platform_fees.toFixed(2)}
+                ${Number(summary.platform_fees || 0).toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground">Revenue generated</p>
             </CardContent>
@@ -247,7 +249,7 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                ${summary.average_transaction}
+                ${Number(summary.average_transaction || 0).toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground">Per transaction</p>
             </CardContent>
@@ -292,10 +294,11 @@ export default function AnalyticsPage() {
                   </div>
                   <div className="text-right">
                     <p className="font-semibold">
-                      ${seller.stripe_volume.toFixed(2)}
+                      ${Number(seller.stripe_volume || 0).toFixed(2)}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {seller.conversion_rate.toFixed(1)}% conversion
+                      {Number(seller.conversion_rate || 0).toFixed(1)}%
+                      conversion
                     </p>
                   </div>
                 </div>
@@ -329,21 +332,27 @@ export default function AnalyticsPage() {
                       {category.category}
                     </span>
                     <Badge variant="secondary">
-                      {category.category_conversion_rate.toFixed(1)}%
+                      {Number(category.category_conversion_rate || 0).toFixed(
+                        1
+                      )}
+                      %
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between text-sm text-gray-600">
                     <span>
-                      {category.sold_count}/{category.total_listings} sold
+                      {category.sold_count || 0}/{category.total_listings || 0}{" "}
+                      sold
                     </span>
-                    <span>${category.total_revenue.toFixed(2)} revenue</span>
+                    <span>
+                      ${Number(category.total_revenue || 0).toFixed(2)} revenue
+                    </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
                       className="bg-blue-600 h-2 rounded-full"
                       style={{
                         width: `${Math.min(
-                          category.category_conversion_rate,
+                          Number(category.category_conversion_rate || 0),
                           100
                         )}%`,
                       }}

@@ -53,6 +53,11 @@ ALTER TABLE connected_accounts ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Service role can access all direct charges" ON direct_charges;
 DROP POLICY IF EXISTS "Service role can access all connected accounts" ON connected_accounts;
 DROP POLICY IF EXISTS "Service role can access all listings" ON listings;
+DROP POLICY IF EXISTS "Anyone can view listings" ON listings;
+DROP POLICY IF EXISTS "Users can create listings" ON listings;
+DROP POLICY IF EXISTS "Users can update their own listings" ON listings;
+DROP POLICY IF EXISTS "Anyone can view connected accounts" ON connected_accounts;
+DROP POLICY IF EXISTS "Users can manage their own connected accounts" ON connected_accounts;
 
 -- Create RLS policies for service role (API access)
 CREATE POLICY "Service role can access all direct charges" ON direct_charges
@@ -89,6 +94,18 @@ FOR UPDATE
 TO public
 USING (auth.email() = seller_email)
 WITH CHECK (auth.email() = seller_email);
+
+-- Create policies for connected accounts
+CREATE POLICY "Anyone can view connected accounts" ON connected_accounts
+FOR SELECT
+TO public
+USING (true);
+
+CREATE POLICY "Users can manage their own connected accounts" ON connected_accounts
+FOR ALL
+TO authenticated
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
 
 -- Update existing listings with mock seller accounts for testing
 UPDATE listings 

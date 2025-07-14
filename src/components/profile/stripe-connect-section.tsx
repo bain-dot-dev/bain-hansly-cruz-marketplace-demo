@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,6 +29,9 @@ import {
   CheckCircle,
   AlertCircle,
 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { testDatabaseConnection } from "@/lib/test-db";
+import { createConnectedAccountsTable } from "@/app/actions/db-setup";
 
 interface StripeStatus {
   connected: boolean;
@@ -52,6 +55,7 @@ interface StripeStatus {
 }
 
 export function StripeConnectSection() {
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [stripeStatus, setStripeStatus] = useState<StripeStatus>({
@@ -63,6 +67,39 @@ export function StripeConnectSection() {
       card_payments: "inactive",
     },
   });
+
+  const loadStripeStatus = useCallback(async () => {
+    if (!user?.id) {
+      console.log("No user ID available");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      console.log("Loading Stripe status for user:", user.id);
+      // In a real app, you'd get the accountId from user session/database
+      const mockAccountId =
+        localStorage.getItem("stripe_account_id") || undefined;
+      const result = await getStripeConnectStatus(mockAccountId, user.id);
+
+      console.log("Stripe status result:", result);
+
+      if (result.error) {
+        console.error("Stripe status error:", result.error);
+        toast.error(result.error);
+      } else {
+        setStripeStatus(result as StripeStatus);
+        if (result.accountId) {
+          localStorage.setItem("stripe_account_id", result.accountId);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading Stripe status:", error);
+      toast.error("Failed to load payment status");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     // Check if user returned from Stripe Connect
@@ -77,38 +114,21 @@ export function StripeConnectSection() {
       window.history.replaceState({}, "", window.location.pathname);
     }
 
-    // Load existing status
-    loadStripeStatus();
-  }, []);
-
-  const loadStripeStatus = async () => {
-    setIsLoading(true);
-    try {
-      // In a real app, you'd get the accountId from user session/database
-      const mockAccountId =
-        localStorage.getItem("stripe_account_id") || undefined;
-      const result = await getStripeConnectStatus(mockAccountId);
-
-      if (result.error) {
-        toast.error(result.error);
-      } else {
-        setStripeStatus(result as StripeStatus);
-        if (result.accountId) {
-          localStorage.setItem("stripe_account_id", result.accountId);
-        }
-      }
-    } catch (error) {
-      console.error("Error loading Stripe status:", error);
-      toast.error("Failed to load payment status");
-    } finally {
-      setIsLoading(false);
+    // Load existing status only if user is available
+    if (user?.id) {
+      loadStripeStatus();
     }
-  };
+  }, [user?.id, loadStripeStatus]);
 
   const handleConnectStripe = async () => {
+    if (!user?.id) {
+      toast.error("Please log in to connect Stripe");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const result = await createStripeConnectAccount();
+      const result = await createStripeConnectAccount(user.id);
 
       if (result.error) {
         toast.error(result.error);
@@ -193,6 +213,24 @@ export function StripeConnectSection() {
       toast.error("Failed to sync transactions");
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  const testDb = async () => {
+    const result = await testDatabaseConnection();
+    if (result.error) {
+      toast.error(`Database test failed: ${result.error}`);
+    } else {
+      toast.success("Database connection successful!");
+    }
+  };
+
+  const setupTable = async () => {
+    const result = await createConnectedAccountsTable();
+    if (result.error) {
+      toast.error(`Setup failed: ${result.error}`);
+    } else {
+      toast.success("Database setup successful!");
     }
   };
 
@@ -318,6 +356,26 @@ export function StripeConnectSection() {
                 </>
               )}
             </Button>
+
+            {/* Debug buttons - remove in production */}
+            <div className="flex gap-2">
+              <Button
+                onClick={testDb}
+                variant="outline"
+                size="sm"
+                className="flex-1"
+              >
+                Test DB
+              </Button>
+              <Button
+                onClick={setupTable}
+                variant="outline"
+                size="sm"
+                className="flex-1"
+              >
+                Setup Table
+              </Button>
+            </div>
           </>
         ) : (
           <>

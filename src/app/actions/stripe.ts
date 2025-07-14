@@ -3,9 +3,13 @@
 import { stripe } from "@/lib/stripe";
 import { supabase } from "@/lib/supabase";
 
-export async function createStripeConnectAccount() {
+export async function createStripeConnectAccount(userId?: string) {
   try {
     console.log("Creating Stripe Connect account...");
+
+    if (!userId) {
+      return { error: "You must be logged in to connect a Stripe account" };
+    }
 
     // Create a Stripe Express account
     const account = await stripe.accounts.create({
@@ -14,6 +18,13 @@ export async function createStripeConnectAccount() {
       capabilities: {
         card_payments: { requested: true },
         transfers: { requested: true },
+      },
+      // Pre-fill with test data for easier testing
+      business_type: "individual",
+      individual: {
+        first_name: "Test",
+        last_name: "User",
+        email: "testuser@example.com",
       },
     });
 
@@ -31,10 +42,11 @@ export async function createStripeConnectAccount() {
       type: "account_onboarding",
     });
 
-    // Store the account ID in the database
+    // Store the account ID in the database with user association
     const { error: dbError } = await supabase
       .from("connected_accounts")
       .insert({
+        user_id: userId,
         stripe_account_id: account.id,
         account_type: "express",
         charges_enabled: false,
@@ -63,10 +75,49 @@ export async function createStripeConnectAccount() {
   }
 }
 
-export async function getStripeConnectStatus(accountId?: string) {
+export async function getStripeConnectStatus(
+  accountId?: string,
+  userId?: string
+) {
   try {
     console.log("Fetching Stripe Connect status...");
 
+    if (!userId) {
+      return {
+        connected: false,
+        status: "not_connected",
+        accountId: null,
+        capabilities: {
+          transfers: "inactive",
+          card_payments: "inactive",
+        },
+      };
+    }
+
+    // If no accountId provided, try to get it from database
+    if (!accountId) {
+      const { data: accountData, error: dbError } = await supabase
+        .from("connected_accounts")
+        .select("stripe_account_id")
+        .eq("user_id", userId)
+        .single();
+
+      if (dbError || !accountData) {
+        return {
+          connected: false,
+          status: "not_connected",
+          accountId: null,
+          capabilities: {
+            transfers: "inactive",
+            card_payments: "inactive",
+          },
+        };
+      }
+
+      accountId = accountData.stripe_account_id;
+    }
+
+    // Get account details from Stripe
     if (!accountId) {
       return {
         connected: false,
@@ -79,13 +130,13 @@ export async function getStripeConnectStatus(accountId?: string) {
       };
     }
 
-    // Get account details from Stripe
     const account = await stripe.accounts.retrieve(accountId);
 
     // Update database with current status
     const { error: dbError } = await supabase
       .from("connected_accounts")
       .upsert({
+        user_id: userId,
         stripe_account_id: accountId,
         charges_enabled: account.charges_enabled || false,
         payouts_enabled: account.payouts_enabled || false,
