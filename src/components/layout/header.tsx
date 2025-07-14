@@ -20,7 +20,22 @@ export function Header() {
   const { user, loading, signOut } = useAuth();
 
   const handleSignOut = async () => {
-    await signOut();
+    try {
+      console.log("Header: Initiating sign out...");
+
+      // Add a timeout to prevent hanging
+      const signOutPromise = signOut();
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Sign out timeout")), 5000)
+      );
+
+      await Promise.race([signOutPromise, timeoutPromise]);
+      console.log("Header: Sign out completed");
+    } catch (error) {
+      console.error("Header: Sign out failed:", error);
+      // Force reload as fallback
+      window.location.href = "/";
+    }
   };
 
   return (

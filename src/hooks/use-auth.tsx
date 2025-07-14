@@ -46,7 +46,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signOut = async () => {
-    await supabaseClient.auth.signOut();
+    try {
+      console.log("Attempting to sign out...");
+      const { error } = await supabaseClient.auth.signOut();
+      if (error) {
+        console.error("Sign out error:", error);
+        throw error;
+      }
+      console.log("Sign out successful");
+
+      // Clear any cached data
+      localStorage.removeItem("stripe_account_id");
+    } catch (error) {
+      console.error("Error during sign out:", error);
+      // Force clear the user state even if signOut fails
+      setUser(null);
+      localStorage.clear();
+    }
   };
 
   const refreshUser = async () => {

@@ -136,20 +136,48 @@ export async function getStripeConnectStatus(
 
     const account = await stripe.accounts.retrieve(accountId);
 
-    // Update database with current status
-    const { error: dbError } = await supabase
-      .from("connected_accounts")
-      .upsert({
-        user_id: userId,
-        stripe_account_id: accountId,
-        charges_enabled: account.charges_enabled || false,
-        payouts_enabled: account.payouts_enabled || false,
-        details_submitted: account.details_submitted || false,
-        updated_at: new Date().toISOString(),
-      });
+    // Update database with current status - handle duplicates properly
+    try {
+      const { error: dbError } = await supabase
+        .from("connected_accounts")
+        .upsert(
+          {
+            user_id: userId,
+            stripe_account_id: accountId,
+            charges_enabled: account.charges_enabled || false,
+            payouts_enabled: account.payouts_enabled || false,
+            details_submitted: account.details_submitted || false,
+            updated_at: new Date().toISOString(),
+          },
+          { 
+            onConflict: "stripe_account_id" 
+          }
+        );
 
-    if (dbError) {
-      console.error("Database update error:", dbError);
+      if (dbError) {
+        console.error("Database update error:", dbError);
+        // If upsert fails, try a simple update instead
+        const { error: updateError } = await supabase
+          .from("connected_accounts")
+          .update({
+            charges_enabled: account.charges_enabled || false,
+            payouts_enabled: account.payouts_enabled || false,
+            details_submitted: account.details_submitted || false,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("stripe_account_id", accountId);
+          
+        if (updateError) {
+          console.error("Database simple update also failed:", updateError);
+        } else {
+          console.log("Successfully updated account status with simple update");
+        }
+      } else {
+        console.log("Successfully upserted account status");
+      }
+    } catch (dbException) {
+      console.error("Database operation exception:", dbException);
+      // Continue with Stripe data even if database update fails
     }
 
     return {

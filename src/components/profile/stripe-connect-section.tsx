@@ -74,6 +74,12 @@ export function StripeConnectSection() {
       return;
     }
 
+    // Prevent multiple simultaneous calls
+    if (isLoading) {
+      console.log("Already loading, skipping");
+      return;
+    }
+
     setIsLoading(true);
     try {
       console.log("Loading Stripe status for user:", user.id);
@@ -84,7 +90,13 @@ export function StripeConnectSection() {
 
       if (result.error) {
         console.error("Stripe status error:", result.error);
-        toast.error(result.error);
+        // Don't show toast for common errors during logout
+        if (
+          !result.error.includes("not found") &&
+          !result.error.includes("No connected account")
+        ) {
+          toast.error(result.error);
+        }
       } else {
         setStripeStatus(result as StripeStatus);
         // Update localStorage with the current accountId from database
@@ -97,11 +109,14 @@ export function StripeConnectSection() {
       }
     } catch (error) {
       console.error("Error loading Stripe status:", error);
-      toast.error("Failed to load payment status");
+      // Don't show toast during logout process
+      if (user?.id) {
+        toast.error("Failed to load payment status");
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, isLoading]);
 
   useEffect(() => {
     // Reset stripe status when user changes (login/logout)
