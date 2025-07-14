@@ -90,34 +90,71 @@ export function ItemGrid({ category }: { category?: string }) {
                     src={listing.image_url || "/placeholder.svg"}
                     alt={listing.title}
                     fill
-                    className="object-cover"
+                    className={`object-cover ${
+                      listing.status === "sold" ? "opacity-60" : ""
+                    }`}
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                  <div
+                    className={`w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center ${
+                      listing.status === "sold" ? "opacity-60" : ""
+                    }`}
+                  >
                     <div className="text-blue-400 text-2xl sm:text-4xl">📷</div>
                   </div>
                 )}
+
+                {/* Sold overlay */}
+                {/* {listing.status === "sold" && (
+                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <div className="bg-red-600 text-white px-2 py-1 rounded-md text-xs font-semibold">
+                      SOLD
+                    </div>
+                  </div>
+                )} */}
               </div>
             </Link>
             <CardContent className="p-2 sm:p-3 min-w-0 flex flex-col justify-between">
               <div>
-                <div className="font-semibold text-sm sm:text-lg text-gray-900 mb-1 truncate">
+                <div
+                  className={`font-semibold text-sm sm:text-lg mb-1 truncate ${
+                    listing.status === "sold"
+                      ? "text-gray-500"
+                      : "text-gray-900"
+                  }`}
+                >
                   ${listing.price.toLocaleString()}
                 </div>
-                <div className="text-xs sm:text-sm text-gray-600 mb-2 line-clamp-2 break-words">
+                <div
+                  className={`text-xs sm:text-sm mb-2 line-clamp-2 break-words ${
+                    listing.status === "sold"
+                      ? "text-gray-400"
+                      : "text-gray-600"
+                  }`}
+                >
                   {listing.title}
                 </div>
-                <div className="text-xs text-gray-500 truncate">
+                <div
+                  className={`text-xs truncate ${
+                    listing.status === "sold"
+                      ? "text-gray-400"
+                      : "text-gray-500"
+                  }`}
+                >
                   {listing.location}
                 </div>
               </div>
               <div className="flex flex-col gap-2 mt-2">
-                <Badge
-                  variant="secondary"
-                  className="text-xs truncate self-start"
-                >
-                  {listing.category}
-                </Badge>
+                <div className="flex gap-2 items-center">
+                  <Badge variant="secondary" className="text-xs truncate">
+                    {listing.category}
+                  </Badge>
+                  {listing.status === "sold" && (
+                    <Badge variant="destructive" className="text-xs">
+                      Sold
+                    </Badge>
+                  )}
+                </div>
                 {listing.status !== "sold" &&
                   listing.seller_stripe_account_id && (
                     <CheckoutButton
