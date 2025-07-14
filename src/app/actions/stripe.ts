@@ -94,15 +94,18 @@ export async function getStripeConnectStatus(
       };
     }
 
-    // If no accountId provided, try to get it from database
+    // If no accountId provided, try to get the most recent one from database
     if (!accountId) {
       const { data: accountData, error: dbError } = await supabase
         .from("connected_accounts")
         .select("stripe_account_id")
         .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
         .single();
 
       if (dbError || !accountData) {
+        console.log("No connected account found for user:", userId, dbError);
         return {
           connected: false,
           status: "not_connected",
@@ -115,6 +118,7 @@ export async function getStripeConnectStatus(
       }
 
       accountId = accountData.stripe_account_id;
+      console.log("Found account for user:", userId, "->", accountId);
     }
 
     // Get account details from Stripe

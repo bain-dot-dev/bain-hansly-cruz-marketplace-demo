@@ -77,10 +77,8 @@ export function StripeConnectSection() {
     setIsLoading(true);
     try {
       console.log("Loading Stripe status for user:", user.id);
-      // In a real app, you'd get the accountId from user session/database
-      const mockAccountId =
-        localStorage.getItem("stripe_account_id") || undefined;
-      const result = await getStripeConnectStatus(mockAccountId, user.id);
+      // Always fetch from database first using userId, don't rely on localStorage
+      const result = await getStripeConnectStatus(undefined, user.id);
 
       console.log("Stripe status result:", result);
 
@@ -89,8 +87,12 @@ export function StripeConnectSection() {
         toast.error(result.error);
       } else {
         setStripeStatus(result as StripeStatus);
+        // Update localStorage with the current accountId from database
         if (result.accountId) {
           localStorage.setItem("stripe_account_id", result.accountId);
+        } else {
+          // Clear localStorage if no account found
+          localStorage.removeItem("stripe_account_id");
         }
       }
     } catch (error) {
@@ -102,6 +104,20 @@ export function StripeConnectSection() {
   }, [user?.id]);
 
   useEffect(() => {
+    // Reset stripe status when user changes (login/logout)
+    if (!user?.id) {
+      setStripeStatus({
+        connected: false,
+        status: "not_connected",
+        accountId: null,
+        capabilities: {
+          transfers: "inactive",
+          card_payments: "inactive",
+        },
+      });
+      return;
+    }
+
     // Check if user returned from Stripe Connect
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("connected") === "true") {
@@ -114,10 +130,8 @@ export function StripeConnectSection() {
       window.history.replaceState({}, "", window.location.pathname);
     }
 
-    // Load existing status only if user is available
-    if (user?.id) {
-      loadStripeStatus();
-    }
+    // Load existing status for the current user
+    loadStripeStatus();
   }, [user?.id, loadStripeStatus]);
 
   const handleConnectStripe = async () => {
