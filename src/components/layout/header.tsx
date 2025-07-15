@@ -90,10 +90,12 @@ export function Header() {
                     <span className="hidden sm:inline">Create</span>
                   </Button>
                 </Link>
-                <div className="hidden md:flex items-center space-x-2">
+                <Link href="/messages">
                   <Button variant="ghost" size="sm">
                     <Mail className="w-5 h-5" />
                   </Button>
+                </Link>
+                <div className="hidden md:flex items-center space-x-2">
                   <Button variant="ghost" size="sm">
                     <Bell className="w-5 h-5" />
                   </Button>

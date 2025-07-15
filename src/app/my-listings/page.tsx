@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 
 import dynamic from "next/dynamic";
-const EditItemModal = dynamic(() => import("./edit-item-modal"), {
+const EditItemModal = dynamic(() => import("../../components/item-modal/edit-item-modal"), {
   ssr: false,
 });
 import { useAuth } from "@/hooks/use-auth";

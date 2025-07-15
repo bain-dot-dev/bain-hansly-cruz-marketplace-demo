@@ -10,6 +10,7 @@ import { CheckoutButton } from "@/components/stripe/checkout-button";
 import { ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 interface Listing {
   id: string;
@@ -26,6 +27,7 @@ interface Listing {
 }
 
 export default function ItemDetailPage() {
+  const { user } = useAuth();
   const params = useParams();
   const { toast } = useToast();
   const [listing, setListing] = useState<Listing | null>(null);
@@ -33,6 +35,7 @@ export default function ItemDetailPage() {
   const [message, setMessage] = useState("I want to buy your item!");
   const [sendingMessage, setSendingMessage] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [buyerEmail, setBuyerEmail] = useState("");
 
   useEffect(() => {
     const fetchListing = async () => {
@@ -54,7 +57,15 @@ export default function ItemDetailPage() {
 
   const sendMessage = async () => {
     if (!listing || !message.trim()) return;
-
+    const emailToSend = user?.email || buyerEmail.trim();
+    if (!emailToSend) {
+      toast({
+        title: "Email required",
+        description: "Please enter your email to contact the seller.",
+        variant: "destructive",
+      });
+      return;
+    }
     setSendingMessage(true);
     try {
       const response = await fetch("/api/messages", {
@@ -65,7 +76,7 @@ export default function ItemDetailPage() {
         body: JSON.stringify({
           listing_id: listing.id,
           seller_email: listing.seller_email,
-          buyer_email: "buyer@example.com", // In a real app, this would come from auth
+          buyer_email: emailToSend,
           message: message.trim(),
         }),
       });
@@ -76,6 +87,7 @@ export default function ItemDetailPage() {
           description: "Your message has been sent to the seller.",
         });
         setMessage("");
+        if (!user) setBuyerEmail("");
       } else {
         throw new Error("Failed to send message");
       }
@@ -249,6 +261,16 @@ export default function ItemDetailPage() {
               <h3 className="font-semibold text-gray-900 mb-3">
                 Send seller a message
               </h3>
+              {!user && (
+                <input
+                  type="email"
+                  value={buyerEmail}
+                  onChange={(e) => setBuyerEmail(e.target.value)}
+                  placeholder="Your email"
+                  className="mb-3 w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  required
+                />
+              )}
               <Textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
@@ -258,7 +280,11 @@ export default function ItemDetailPage() {
               />
               <Button
                 onClick={sendMessage}
-                disabled={sendingMessage || !message.trim()}
+                disabled={
+                  sendingMessage ||
+                  !message.trim() ||
+                  (!user && !buyerEmail.trim())
+                }
                 className="w-full bg-[#1877F2] hover:bg-[#166FE5]"
               >
                 {sendingMessage ? "Sending..." : "Send"}
