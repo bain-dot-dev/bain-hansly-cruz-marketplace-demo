@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
     const search = searchParams.get("search");
+    const sellerEmail = searchParams.get("seller_email");
 
     let query = supabase
       .from("listings")
@@ -23,6 +24,10 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+    }
+
+    if (sellerEmail) {
+      query = query.eq("seller_email", sellerEmail);
     }
 
     const { data, error } = await query;

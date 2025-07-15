@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckoutButton } from "@/components/stripe/checkout-button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 
@@ -32,6 +32,7 @@ export default function ItemDetailPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("I want to buy your item!");
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchListing = async () => {
@@ -129,6 +130,36 @@ export default function ItemDetailPage() {
 
   return (
     <div className="max-w-6xl mx-auto p-4 sm:p-6">
+      {/* Image Modal */}
+      {isModalOpen && listing?.image_url && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            className="relative bg-white rounded-lg shadow-lg overflow-hidden"
+            style={{ maxWidth: "95vw", maxHeight: "95vh" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="absolute top-2 right-2 z-10 bg-white/80 rounded-full p-1 hover:bg-white"
+              onClick={() => setIsModalOpen(false)}
+              aria-label="Close"
+            >
+              <X className="w-6 h-6 text-gray-700" />
+            </button>
+            <Image
+              src={listing.image_url}
+              alt={listing.title}
+              width={1600}
+              height={1600}
+              className="object-contain max-h-[90vh] max-w-[90vw] w-auto h-auto bg-white"
+              priority
+            />
+          </div>
+        </div>
+      )}
+
       <Link
         href="/"
         className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4 sm:mb-6"
@@ -139,7 +170,10 @@ export default function ItemDetailPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         {/* Image */}
-        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+        <div
+          className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer"
+          onClick={() => listing.image_url && setIsModalOpen(true)}
+        >
           {listing.image_url ? (
             <Image
               src={listing.image_url || "/placeholder.svg"}

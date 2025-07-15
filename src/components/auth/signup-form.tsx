@@ -46,19 +46,34 @@ export function SignUpForm() {
     }
 
     try {
-      await signUpWithEmail(email, password, {
+      const result = await signUpWithEmail(email, password, {
         first_name: firstName,
         last_name: lastName,
       });
-      setSuccess(true);
-      toast.success(
-        "Account created successfully! Please check your email to verify your account."
-      );
 
-      // Redirect to sign in after a short delay
-      setTimeout(() => {
-        router.push("/auth/signin");
-      }, 2000);
+      setSuccess(true);
+
+      // Check if email verification is enabled
+      const emailVerificationEnabled =
+        process.env.NEXT_PUBLIC_ENABLE_EMAIL_VERIFICATION !== "false";
+
+      if (emailVerificationEnabled && !result.session) {
+        // Email verification required
+        toast.success(
+          "Account created successfully! Please check your email to verify your account."
+        );
+        // Redirect to sign in after a short delay
+        setTimeout(() => {
+          router.push("/auth/signin");
+        }, 2000);
+      } else {
+        // No email verification needed, user is signed in immediately
+        toast.success("Account created successfully! You are now signed in.");
+        // Redirect to profile or home after a short delay
+        setTimeout(() => {
+          router.push("/profile");
+        }, 1500);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -82,7 +97,9 @@ export function SignUpForm() {
           {success && (
             <Alert>
               <AlertDescription>
-                Account created successfully! Redirecting to sign in...
+                {process.env.NEXT_PUBLIC_ENABLE_EMAIL_VERIFICATION !== "false"
+                  ? "Account created successfully! Check your email to verify your account..."
+                  : "Account created successfully! You are now signed in..."}
               </AlertDescription>
             </Alert>
           )}

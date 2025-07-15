@@ -12,6 +12,7 @@ import {
   LogIn,
   UserPlus,
   LogOut,
+  Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -67,6 +68,16 @@ export function Header() {
                   >
                     <BarChart3 className="w-4 h-4" />
                     <span className="hidden sm:inline">Analytics</span>
+                  </Button>
+                </Link>
+                <Link href="/my-listings">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center space-x-1 sm:space-x-2 bg-transparent px-2 sm:px-3"
+                  >
+                    <Package className="w-4 h-4" />
+                    <span className="hidden sm:inline">My Listings</span>
                   </Button>
                 </Link>
                 <Link href="/create">

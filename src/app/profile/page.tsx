@@ -1,5 +1,6 @@
 import { ProfileForm } from "@/components/profile/profile-form";
 import { StripeConnectSection } from "@/components/profile/stripe-connect-section";
+import { EmailVerificationSettings } from "@/components/auth/email-verification-settings";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
 export default function ProfilePage() {
@@ -20,6 +21,11 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <ProfileForm />
               <StripeConnectSection />
+            </div>
+
+            {/* Email Verification Settings */}
+            <div className="mt-8">
+              <EmailVerificationSettings />
             </div>
           </div>
         </div>

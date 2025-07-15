@@ -18,6 +18,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 const categories = [
   "Electronics",
@@ -35,13 +36,13 @@ const categories = [
 export default function CreateItemPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     price: "",
-    email: "",
     description: "",
     category: "",
   });
@@ -91,6 +92,7 @@ export default function CreateItemPage() {
         ...formData,
         price: Number.parseFloat(formData.price),
         image_url: imageUrl,
+        email: user?.email || "",
       };
 
       console.log("Sending listing data:", listingData); // Debug log
@@ -211,21 +213,6 @@ export default function CreateItemPage() {
               />
             </div>
 
-            {/* Email */}
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                placeholder="Email"
-                required
-              />
-            </div>
-
             {/* Category */}
             <div>
               <Label htmlFor="category">Category</Label>
@@ -311,7 +298,7 @@ export default function CreateItemPage() {
                 <div>
                   <h4 className="font-semibold mb-1">Seller Information</h4>
                   <p className="text-sm text-gray-600">
-                    {formData.email || "Your email"}
+                    {user?.email || "Your email"}
                   </p>
                 </div>
 
