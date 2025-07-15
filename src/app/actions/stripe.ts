@@ -11,6 +11,32 @@ export async function createStripeConnectAccount(userId?: string) {
       return { error: "You must be logged in to connect a Stripe account" };
     }
 
+    // Check if we're in a Connect-enabled environment
+    try {
+      // Test if Connect is available by trying to create a minimal account
+      const testAccount = await stripe.accounts.create({
+        type: "express",
+        country: "US",
+      });
+
+      // If successful, delete the test account and create the real one
+      await stripe.accounts.del(testAccount.id);
+    } catch (connectError: unknown) {
+      const errorMessage =
+        connectError instanceof Error
+          ? connectError.message
+          : String(connectError);
+      if (errorMessage?.includes("Only Stripe Connect platforms")) {
+        console.error("Stripe Connect not enabled for this account");
+        return {
+          error:
+            "Stripe Connect is not enabled for this account. Please set up Connect in your Stripe Dashboard at https://dashboard.stripe.com/account/applications/settings or contact support.",
+          connectSetupRequired: true,
+        };
+      }
+      throw connectError; // Re-throw if it's a different error
+    }
+
     // Create a Stripe Express account
     const account = await stripe.accounts.create({
       type: "express",
@@ -149,8 +175,8 @@ export async function getStripeConnectStatus(
             details_submitted: account.details_submitted || false,
             updated_at: new Date().toISOString(),
           },
-          { 
-            onConflict: "stripe_account_id" 
+          {
+            onConflict: "stripe_account_id",
           }
         );
 
@@ -166,7 +192,7 @@ export async function getStripeConnectStatus(
             updated_at: new Date().toISOString(),
           })
           .eq("stripe_account_id", accountId);
-          
+
         if (updateError) {
           console.error("Database simple update also failed:", updateError);
         } else {

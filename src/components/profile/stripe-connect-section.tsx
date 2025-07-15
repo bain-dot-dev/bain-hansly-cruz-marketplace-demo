@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -58,6 +58,7 @@ export function StripeConnectSection() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const isLoadingRef = useRef(false);
   const [stripeStatus, setStripeStatus] = useState<StripeStatus>({
     connected: false,
     status: "not_connected",
@@ -74,12 +75,13 @@ export function StripeConnectSection() {
       return;
     }
 
-    // Prevent multiple simultaneous calls
-    if (isLoading) {
+    // Prevent multiple simultaneous calls using ref
+    if (isLoadingRef.current) {
       console.log("Already loading, skipping");
       return;
     }
 
+    isLoadingRef.current = true;
     setIsLoading(true);
     try {
       console.log("Loading Stripe status for user:", user.id);
@@ -114,9 +116,10 @@ export function StripeConnectSection() {
         toast.error("Failed to load payment status");
       }
     } finally {
+      isLoadingRef.current = false;
       setIsLoading(false);
     }
-  }, [user?.id, isLoading]);
+  }, [user?.id]); // Only depend on user?.id
 
   useEffect(() => {
     // Reset stripe status when user changes (login/logout)
@@ -160,7 +163,14 @@ export function StripeConnectSection() {
       const result = await createStripeConnectAccount(user.id);
 
       if (result.error) {
-        toast.error(result.error);
+        if (result.connectSetupRequired) {
+          toast.error("Stripe Connect Setup Required", {
+            description:
+              "Please enable Stripe Connect in your dashboard at: https://dashboard.stripe.com/account/applications/settings",
+          });
+        } else {
+          toast.error(result.error);
+        }
       } else if (result.url) {
         // Store account ID for later reference
         if (result.accountId) {
